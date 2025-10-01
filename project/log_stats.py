@@ -1,17 +1,25 @@
 """
 Статистика запросов из MongoDB.
 """
+import os
+from pathlib import Path
+from dotenv import load_dotenv, find_dotenv
 from pymongo import MongoClient
 
-client = MongoClient(
-    "mongodb://ich_editor:verystrongpassword"
-    "@mongo.itcareerhub.de/?readPreference=primary"
-    "&ssl=false&authMechanism=DEFAULT&authSource=ich_edit"
-)
+# Загружаем переменные окружения из .env
+load_dotenv(find_dotenv() or Path(".env"))
 
-db = client["ich_edit"]
-col = db["final_project_250425-ptm_irada"]
+# Получаем данные из .env
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB = os.getenv("MONGO_DB", "ich_edit")
+MONGO_COLL = os.getenv("MONGO_COLL", "final_project_250425-ptm_irada")
 
+# Подключение к MongoDB
+client = MongoClient(MONGO_URI)
+db = client[MONGO_DB]
+col = db[MONGO_COLL]
+
+# --- функции статистики ---
 def top_popular(limit=5):
     pipeline = [
         {"$group": {
@@ -35,3 +43,13 @@ def last_unique(limit=5):
         {"$limit": limit}
     ]
     return list(col.aggregate(pipeline))
+
+
+# --- проверка соединения (опционально, для отладки) ---
+if __name__ == "__main__":
+    try:
+        client.admin.command("ping")
+        print("MongoDB подключение успешно")
+        print("Документов в коллекции:", db[MONGO_COLL].count_documents({}))
+    except Exception as e:
+        print("Ошибка подключения к Mongo:", e)
