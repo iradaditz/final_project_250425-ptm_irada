@@ -4,13 +4,20 @@
 import pymysql
 from pymysql.cursors import DictCursor
 
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# грузим переменные из .env
+load_dotenv(Path(".env"))
+
 config = {
-    'host': 'ich-db.edu.itcareerhub.de',
-    'user': 'ich1',
-    'password': 'password',
-    'database': 'sakila',
-    'cursorclass': DictCursor,
-    'autocommit': True
+    "host": os.getenv("host"),
+    "user": os.getenv("user"),
+    "password": os.getenv("password"),
+    "database": os.getenv("database", "sakila"),
+    "cursorclass": DictCursor,
+    "autocommit": True,
 }
 
 def get_connection():
